@@ -10,21 +10,23 @@ function start_frontend() {
 
     echo 'Starting haproxy.'
     echo 'Haproxy is at http://127.0.0.1:8000'
+    echo 'Haproxy is at https://127.0.0.1:8001'
     echo
     /usr/local/bin/haproxy -f $haproxy_cfg -d \
-      > /tmp/haproxy_8000 2>&1 &
+      > /tmp/haproxy.log 2>&1 &
 
     echo 'Starting nginx.'
-    echo 'Nginx is at http://127.0.0.1:8001'
+    echo 'Nginx is at http://127.0.0.1:8002'
+    echo 'Nginx is at https://127.0.0.1:8003'
     echo
     /usr/local/bin/nginx -c $nginx_cfg 2>&1 \
       | grep -v "could not open error log" &
 
     echo 'Starting varnish.'
-    echo 'Varnish is at http://127.0.0.1:8002'
+    echo 'Varnish is at http://127.0.0.1:8004'
     echo
-    /opt/local/sbin/varnishd -a 127.0.0.1:8002 -f $varnish_cfg \
-      -n /tmp -F > /tmp/varnish_8002 2>&1 &
+    /opt/local/sbin/varnishd -a 127.0.0.1:8004 -f $varnish_cfg \
+      -n /tmp -F > /tmp/varnish.log 2>&1 &
 
     echo 'Logs are in /tmp'
 }
@@ -41,6 +43,11 @@ function start_backend() {
     echo 'Backends are at http://127.0.0.1:{3000,3001,3002}'
     for i in 3000 3001 3002; do
       /opt/local/bin/morbo mojo_backend.pl -l http://*:${i} \
+        > /tmp/mojo_${i} 2>&1 &
+    done
+    echo 'Backends are at https://127.0.0.1:{3003,3004,3005}'
+    for i in 3003 3004 3005; do
+      /opt/local/bin/morbo mojo_backend.pl -l https://*:${i} \
         > /tmp/mojo_${i} 2>&1 &
     done
     echo 'Logs are in /tmp'
@@ -94,23 +101,27 @@ cat <<- _eof_
            check
 
   Sample:
-    - use haproxy > backend
+    - use haproxy > backend (http/https)
       $ curl -I http://127.0.0.1:8000
+      $ curl -I https://127.0.0.1:8001
 
-    - use nginx > backend
-      $ curl -I http://127.0.0.1:8001
+    - use nginx > backend (http/https)
+      $ curl -I http://127.0.0.1:8002
+      $ curl -Ik https://127.0.0.1:8003
 
     - use varnish > backend
-      $ curl -I http://127.0.0.1:8002
+      $ curl -I http://127.0.0.1:8004
 
-    - use haproxy > nginx > backend
+    - use haproxy > nginx > backend (http/https)
       $ curl -I http://127.0.0.1:8000/nginx-a
+      $ curl -Ik https://127.0.0.1:8000/nginx-a
 
     - use haproxy > varnish > backend
       $ curl -I http://127.0.0.1:8000/varnish-a
 
     - use backend directly
-      $ curl -I http://127.0.0.1:3000/{a,b,c}
+      $ curl -I http://127.0.0.1:300{0,1,2}
+      $ curl -Ik https://127.0.0.1:300{3,4,5}
 
 _eof_
 }
@@ -121,11 +132,17 @@ function test_system {
     /opt/local/bin/curl -I http://127.0.0.1:8000/
     /opt/local/bin/curl -I http://127.0.0.1:8000/nginx-a
     /opt/local/bin/curl -I http://127.0.0.1:8000/varnish-a
-    /opt/local/bin/curl -I http://127.0.0.1:8001/
+
     /opt/local/bin/curl -I http://127.0.0.1:8002/
+    /opt/local/bin/curl -I -k https://127.0.0.1:8003/
+
     /opt/local/bin/curl -I http://127.0.0.1:3000/
     /opt/local/bin/curl -I http://127.0.0.1:3001/
     /opt/local/bin/curl -I http://127.0.0.1:3002/
+
+    /opt/local/bin/curl -I -k https://127.0.0.1:3003/
+    /opt/local/bin/curl -I -k https://127.0.0.1:3004/
+    /opt/local/bin/curl -I -k https://127.0.0.1:3005/
 }
 
 case "$1" in
@@ -163,6 +180,9 @@ case "$1" in
         ;;
     check)
         ps aux | egrep "haproxy |nginx|varnishd|mojo" | egrep -v egrep
+        ;;
+    version)
+        echo
         ;;
     *)
         usage
