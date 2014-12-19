@@ -182,7 +182,9 @@ case "$1" in
         ps aux | egrep "haproxy |nginx|varnishd|mojo" | egrep -v egrep
         ;;
     version)
-        echo
+        /usr/local/bin/haproxy -v | grep version
+        /usr/local/bin/nginx -v | grep version
+        /opt/local/sbin/varnishd -V 2>&1 | grep varnishd
         ;;
     *)
         usage
