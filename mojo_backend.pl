@@ -6,8 +6,8 @@ use Mojolicious::Lite;
 
 get '/' => sub {
     my $c = shift;
-    my $ua = $c->req->headers->user_agent;
-    $c->render(text => "Request by $ua");
+    my $all_headers = $c->req->headers;
+    $c->render(text => clean_output($all_headers));
 };
 
 get '/cache' => sub {
@@ -46,10 +46,10 @@ get '/sleep' => sub {
     });
 };
 
-get '/user' => sub {
+get '/user-agent' => sub {
     my $c = shift;
-    my $all_headers = $c->req->headers;
-    $c->render(text => clean_output($all_headers));
+    my $ua = $c->req->headers->user_agent;
+    $c->render(text => "Request by $ua");
 };
 
 for my $i ('a'..'z') {

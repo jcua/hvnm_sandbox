@@ -128,21 +128,32 @@ _eof_
 
 function test_system {
     echo 'Running test suite.'
+    echo 'Testing haproxy (http).'
+    /opt/local/bin/curl -Is http://127.0.0.1:8000/ | grep 'OK'
+    /opt/local/bin/curl -Is http://127.0.0.1:8000/nginx-a | grep 'OK'
+    /opt/local/bin/curl -Is http://127.0.0.1:8000/varnish-a | grep 'OK'
+
     echo
-    /opt/local/bin/curl -I http://127.0.0.1:8000/
-    /opt/local/bin/curl -I http://127.0.0.1:8000/nginx-a
-    /opt/local/bin/curl -I http://127.0.0.1:8000/varnish-a
+    echo 'Testing haproxy (https).'
+    /opt/local/bin/curl -Isk https://127.0.0.1:8001/ | grep 'OK'
+    /opt/local/bin/curl -Isk https://127.0.0.1:8001/varnish-a | grep 'OK'
 
-    /opt/local/bin/curl -I http://127.0.0.1:8002/
-    /opt/local/bin/curl -I -k https://127.0.0.1:8003/
+    echo
+    echo 'Testing nginx (http/https).'
+    /opt/local/bin/curl -Is http://127.0.0.1:8002/ | grep 'OK'
+    /opt/local/bin/curl -Isk https://127.0.0.1:8003/ | grep 'OK'
 
-    /opt/local/bin/curl -I http://127.0.0.1:3000/
-    /opt/local/bin/curl -I http://127.0.0.1:3001/
-    /opt/local/bin/curl -I http://127.0.0.1:3002/
+    echo
+    echo 'Testing mojo (http).'
+    /opt/local/bin/curl -Is http://127.0.0.1:3000/ | grep 'OK'
+    /opt/local/bin/curl -Is http://127.0.0.1:3001/ | grep 'OK'
+    /opt/local/bin/curl -Is http://127.0.0.1:3002/ | grep 'OK'
 
-    /opt/local/bin/curl -I -k https://127.0.0.1:3003/
-    /opt/local/bin/curl -I -k https://127.0.0.1:3004/
-    /opt/local/bin/curl -I -k https://127.0.0.1:3005/
+    echo
+    echo 'Testing mojo (https).'
+    /opt/local/bin/curl -Isk https://127.0.0.1:3003/ | grep 'OK'
+    /opt/local/bin/curl -Isk https://127.0.0.1:3004/ | grep 'OK'
+    /opt/local/bin/curl -Isk https://127.0.0.1:3005/ | grep 'OK'
 }
 
 case "$1" in
