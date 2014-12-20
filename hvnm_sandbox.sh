@@ -157,6 +157,34 @@ function test_system {
     /opt/local/bin/curl -Isk https://127.0.0.1:3005/ | grep 'OK'
 }
 
+function watch_config {
+    haproxy_old_time=$(stat -ln $haproxy_cfg)
+    haproxy_new_time=$haproxy_old_time
+
+    nginx_old_time=$(stat -ln $nginx_cfg)
+    nginx_new_time=$nginx_old_time
+
+    varnish_old_time=$(stat -ln $varnish_cfg)
+    varnish_new_time=$varnish_old_time
+
+    while true; do
+        haproxy_old_time=$(stat -ln $haproxy_cfg)
+        nginx_old_time=$(stat -ln $nginx_cfg)
+        varnish_old_time=$(stat -ln $varnish_cfg)
+
+        if [[ "$haproxy_old_time" != "$haproxy_new_time" ]] \
+          || [[ "$nginx_old_time" != "$nginx_new_time" ]] \
+          || [[ "$varnish_old_time" != "$varnish_new_time" ]]
+        then
+            start_frontend
+            haproxy_new_time=$haproxy_old_time
+            nginx_new_time=$nginx_old_time
+            varnish_new_time=$varnish_old_time
+        fi
+    sleep 1
+    done
+}
+
 case "$1" in
     start)
         case "$2" in
@@ -197,6 +225,9 @@ case "$1" in
         /usr/local/bin/haproxy -v | grep version
         /usr/local/bin/nginx -v | grep version
         /opt/local/sbin/varnishd -V 2>&1 | grep varnishd
+        ;;
+    watch)
+        watch_config
         ;;
     *)
         usage
