@@ -42,12 +42,12 @@ function start_backend() {
     echo 'Starting backends'
     echo 'Backends are at http://127.0.0.1:{3000,3001,3002}'
     for i in 3000 3001 3002; do
-      /opt/local/bin/morbo mojo_backend.pl -l http://*:${i} \
+      /opt/local/bin/morbo http_backend.pl -l http://*:${i} \
         > /tmp/mojo_${i} 2>&1 &
     done
     echo 'Backends are at https://127.0.0.1:{3003,3004,3005}'
     for i in 3003 3004 3005; do
-      /opt/local/bin/morbo mojo_backend.pl -l https://*:${i} \
+      /opt/local/bin/morbo http_backend.pl -l https://*:${i} \
         > /tmp/mojo_${i} 2>&1 &
     done
     echo 'Logs are in /tmp'
