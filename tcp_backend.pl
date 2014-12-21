@@ -28,9 +28,6 @@ Mojo::IOLoop->server({port => 3010} => sub {
         elsif ($method =~ 'status') {
             $msg = "delay is $delay";
         }
-        else {
-            $msg = 'unknown command';
-        }
 
         $stream->write($msg . "\n");
         $delay++ if ($delay > 0);
