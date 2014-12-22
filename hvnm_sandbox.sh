@@ -4,8 +4,16 @@ haproxy_cfg='/tmp/haproxy-sandbox.cfg'
 nginx_cfg='/tmp/nginx-sandbox.conf'
 varnish_cfg='/tmp/varnish-sandbox.vcl'
 
+function check_configs() {
+    /usr/local/bin/haproxy -c -f $haproxy_cfg | grep ALERT
+    /usr/local/bin/nginx -t -c $nginx_cfg 2>&1 | grep emerg
+    /opt/local/sbin/varnishd -C -f $varnish_cfg -n /tmp 2>&1 \
+        | grep 'VCL compilation failed'
+}
+
 function start_frontend() {
     stop_frontend
+    check_configs
     sleep 1
 
     echo 'Starting haproxy.'
@@ -13,7 +21,7 @@ function start_frontend() {
     echo 'Haproxy is at https://127.0.0.1:8001'
     echo
     /usr/local/bin/haproxy -f $haproxy_cfg -d \
-      > /tmp/haproxy.log 2>&1 &
+      > /tmp/haproxy_start.log 2>&1 &
 
     echo 'Starting nginx.'
     echo 'Nginx is at http://127.0.0.1:8002'
@@ -40,22 +48,28 @@ function stop_frontend() {
 
 function start_backend() {
     echo 'Starting backends'
-    echo 'Backends are at http://127.0.0.1:{3000,3001,3002}'
+    echo 'HTTP backends are at http://127.0.0.1:{3000,3001,3002}'
     for i in 3000 3001 3002; do
       /opt/local/bin/morbo http_backend.pl -l http://*:${i} \
-        > /tmp/mojo_${i} 2>&1 &
+        > /tmp/mojo_http_${i} 2>&1 &
     done
-    echo 'Backends are at https://127.0.0.1:{3003,3004,3005}'
+    echo 'HTTPS backends are at https://127.0.0.1:{3003,3004,3005}'
     for i in 3003 3004 3005; do
       /opt/local/bin/morbo http_backend.pl -l https://*:${i} \
-        > /tmp/mojo_${i} 2>&1 &
+        > /tmp/mojo_https_${i} 2>&1 &
+    done
+    echo 'TCP backends are at https://127.0.0.1:{3010,3011,3012}'
+    for i in 3010; do
+      /opt/local/bin/perl tcp_backend.pl -l 3010 \
+        > /tmp/mojo_tcp_${i} 2>&1 &
     done
     echo 'Logs are in /tmp'
 }
 
 function stop_backend() {
-    echo 'Stopping morbo.'
-    /opt/local/bin/pkill -f morbo
+    echo 'Stopping backends.'
+    /opt/local/bin/pkill -f http_backend.pl
+    /opt/local/bin/pkill -f tcp_backend.pl
 }
 
 function start_all() {
@@ -87,6 +101,8 @@ function config_setup() {
     generate_config $haproxy_cfg haproxy-sandbox.cfg $time
     generate_config $nginx_cfg nginx-sandbox.conf $time
     generate_config $varnish_cfg varnish-sandbox.vcl $time
+
+    /bin/cp 127.0.0.1.* /tmp
 }
 
 function usage() {
@@ -219,7 +235,8 @@ case "$1" in
         test_system
         ;;
     check)
-        ps aux | egrep "haproxy |nginx|varnishd|mojo" | egrep -v egrep
+        egrep_var='haproxy |nginx|varnishd|http_backend|tcp_backend'
+        ps aux | egrep "$egrep_var" | egrep -v egrep
         ;;
     version)
         /usr/local/bin/haproxy -v | grep version
