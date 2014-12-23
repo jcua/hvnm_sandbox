@@ -115,9 +115,18 @@ cat <<- _eof_
            run_test
            help
            check
+           version
+           watch
 
   Sample:
-    - use haproxy > backend (http/https)
+    - use haproxy > nginx > backend (http/https)
+      $ curl -I http://127.0.0.1:8000/nginx-a
+      $ curl -Ik https://127.0.0.1:8000/nginx-a
+
+    - use haproxy > varnish > backend
+      $ curl -I http://127.0.0.1:8000/varnish-a
+
+    - use haproxy > backend (http/https/tcp)
       $ curl -I http://127.0.0.1:8000
       $ curl -I https://127.0.0.1:8001
 
@@ -127,13 +136,6 @@ cat <<- _eof_
 
     - use varnish > backend
       $ curl -I http://127.0.0.1:8004
-
-    - use haproxy > nginx > backend (http/https)
-      $ curl -I http://127.0.0.1:8000/nginx-a
-      $ curl -Ik https://127.0.0.1:8000/nginx-a
-
-    - use haproxy > varnish > backend
-      $ curl -I http://127.0.0.1:8000/varnish-a
 
     - use backend directly
       $ curl -I http://127.0.0.1:300{0,1,2}
@@ -161,6 +163,10 @@ function test_system {
     /opt/local/bin/curl -Isk https://127.0.0.1:8003/ | grep 'OK'
 
     echo
+    echo 'Testing varnish.'
+    /opt/local/bin/curl -Is http://127.0.0.1:8004 | grep 'OK'
+
+    echo
     echo 'Testing mojo (http).'
     /opt/local/bin/curl -Is http://127.0.0.1:3000/ | grep 'OK'
     /opt/local/bin/curl -Is http://127.0.0.1:3001/ | grep 'OK'
@@ -171,6 +177,10 @@ function test_system {
     /opt/local/bin/curl -Isk https://127.0.0.1:3003/ | grep 'OK'
     /opt/local/bin/curl -Isk https://127.0.0.1:3004/ | grep 'OK'
     /opt/local/bin/curl -Isk https://127.0.0.1:3005/ | grep 'OK'
+
+    echo
+    echo 'Testing mojo (tcp).'
+    /usr/bin/nc -vz 127.0.0.1 3010 | grep 'succeeded'
 }
 
 function watch_config {
@@ -245,6 +255,9 @@ case "$1" in
         ;;
     watch)
         watch_config
+        ;;
+    help)
+        usage
         ;;
     *)
         usage
