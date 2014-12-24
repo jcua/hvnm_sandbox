@@ -159,7 +159,7 @@ function test_system {
     echo
     echo 'Testing haproxy (https).'
     /opt/local/bin/curl -Isk https://127.0.0.1:8001/ | grep 'OK'
-    /opt/local/bin/curl -Isk https://127.0.0.1:8002/nginx-a | grep 'OK'
+    /opt/local/bin/curl -Isk https://127.0.0.1:8001/nginx-a | grep 'OK'
     /opt/local/bin/curl -Isk https://127.0.0.1:8001/varnish-a | grep 'OK'
 
     echo
