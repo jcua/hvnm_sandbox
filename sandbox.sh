@@ -159,6 +159,10 @@ function test_system {
     /opt/local/bin/curl -Isk https://127.0.0.1:8001/varnish-a | grep 'OK'
 
     echo
+    echo 'Testing haproxy (tcp).'
+    /usr/bin/nc -vz 127.0.0.1 8005 | grep 'succeeded'
+
+    echo
     echo 'Testing nginx (http/https).'
     /opt/local/bin/curl -Is http://127.0.0.1:8002/ | grep 'OK'
     /opt/local/bin/curl -Isk https://127.0.0.1:8003/ | grep 'OK'
@@ -182,6 +186,8 @@ function test_system {
     echo
     echo 'Testing mojo (tcp).'
     /usr/bin/nc -vz 127.0.0.1 3010 | grep 'succeeded'
+    /usr/bin/nc -vz 127.0.0.1 3011 | grep 'succeeded'
+    /usr/bin/nc -vz 127.0.0.1 3012 | grep 'succeeded'
 }
 
 function watch_config {
