@@ -19,6 +19,7 @@ function start_frontend() {
     echo 'Starting haproxy.'
     echo 'Haproxy is at http://127.0.0.1:8000'
     echo 'Haproxy is at https://127.0.0.1:8001'
+    echo 'Haproxy tcp is listening at 127.0.0.1 8005'
     echo
     /usr/local/bin/haproxy -f $haproxy_cfg -d \
       > /tmp/haproxy_start.log 2>&1 &
@@ -37,6 +38,7 @@ function start_frontend() {
       -n /tmp -F > /tmp/varnish.log 2>&1 &
 
     echo 'Logs are in /tmp'
+    echo
 }
 
 function stop_frontend() {
@@ -63,7 +65,9 @@ function start_backend() {
       /opt/local/bin/perl tcp_backend.pl -l $i \
         > /tmp/mojo_tcp_${i} 2>&1 &
     done
+    echo
     echo 'Logs are in /tmp'
+    echo
 }
 
 function stop_backend() {
@@ -242,6 +246,21 @@ case "$1" in
                 ;;
             *)
                 stop_all
+                ;;
+        esac
+        ;;
+    restart)
+        case "$2" in
+            front)
+                stop_frontend
+                start_frontend
+                ;;
+            back)
+                stop_backend
+                start_backend
+                ;;
+            *)
+                start_all
                 ;;
         esac
         ;;
