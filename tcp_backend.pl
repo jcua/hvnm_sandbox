@@ -2,11 +2,14 @@
 
 use strict;
 use Mojo::IOLoop;
+use Getopt::Long;
+
+GetOptions( 'listen=i' => \my $opt_port, );
 
 my $delay = 0;
 my $current_time = 0;
 
-Mojo::IOLoop->server({port => 3010} => sub {
+Mojo::IOLoop->server({port => $opt_port} => sub {
     my ($loop, $stream) = @_;
 
     $stream->on(read => sub {

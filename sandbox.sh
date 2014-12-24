@@ -59,8 +59,8 @@ function start_backend() {
         > /tmp/mojo_https_${i} 2>&1 &
     done
     echo 'TCP backends are at https://127.0.0.1:{3010,3011,3012}'
-    for i in 3010; do
-      /opt/local/bin/perl tcp_backend.pl -l 3010 \
+    for i in 3010 3011 3012; do
+      /opt/local/bin/perl tcp_backend.pl -l $i \
         > /tmp/mojo_tcp_${i} 2>&1 &
     done
     echo 'Logs are in /tmp'
@@ -140,6 +140,7 @@ cat <<- _eof_
     - use backend directly
       $ curl -I http://127.0.0.1:300{0,1,2}
       $ curl -Ik https://127.0.0.1:300{3,4,5}
+      $ nc -v 127.0.0.1 30{10,11,12}
 
 _eof_
 }
