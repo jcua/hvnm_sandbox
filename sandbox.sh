@@ -129,10 +129,12 @@ cat <<- _eof_
 
     - use haproxy > varnish > backend
       $ curl -I http://127.0.0.1:8000/varnish-a
+      $ curl -Ik https://127.0.0.1:8001/varnish-a
 
     - use haproxy > backend (http/https/tcp)
       $ curl -I http://127.0.0.1:8000
       $ curl -I https://127.0.0.1:8001
+      $ nc -vz 127.0.0.1 8005
 
     - use nginx > backend (http/https)
       $ curl -I http://127.0.0.1:8002
